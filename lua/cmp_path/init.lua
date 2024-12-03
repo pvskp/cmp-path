@@ -1,7 +1,7 @@
 local cmp = require 'cmp'
 
 local NAME_REGEX = '\\%([^/\\\\:\\*?<>\'"`\\|]\\)'
-local PATH_REGEX = vim.regex(([[\%(\%(/PAT*[^/\\\\:\\*?<>\'"`\\| .~]\)\|\%(/\.\.\)\)*/\zePAT*$]]):gsub('PAT', NAME_REGEX))
+local PATH_REGEX = vim.regex(([[\%([/"\']PAT\+\)*[/"\']\zePAT*$]]):gsub("PAT", NAME_REGEX))
 
 local source = {}
 
@@ -28,7 +28,7 @@ source.new = function()
 end
 
 source.get_trigger_characters = function()
-  return { '/', '.' }
+	return { "/", ".", '"', "'" }
 end
 
 source.get_keyword_pattern = function(self, params)
@@ -78,6 +78,9 @@ source._dirname = function(self, params, option)
   if vim.api.nvim_get_mode().mode == 'c' then
     buf_dirname = vim.fn.getcwd()
   end
+	if prefix:match('"$') or prefix:match("'$") then
+		return vim.fn.resolve(vim.fn.getcwd() .. "/" .. dirname)
+	end
   if prefix:match('%.%./$') then
     return vim.fn.resolve(buf_dirname .. '/../' .. dirname)
   end
